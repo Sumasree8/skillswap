@@ -1,0 +1,45 @@
+# Full SkillSwap stack: MongoDB + backend API + nginx-served frontend.
+#
+#   cp .env.example .env      # set JWT_SECRET (and optionally others)
+#   docker compose up --build
+#   # then optionally seed the demo data:
+#   docker compose exec backend npm run seed
+#
+# Frontend → http://localhost:8080
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/skillswap
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (>= 32 random chars)}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      # Public origin of the frontend (for CORS). Comma-separate if more.
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:8080}
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  mongo_data:

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usersApi, reviewsApi } from '../services/api';
 import { Avatar, SkillTag, StarRating, CreditBadge, Spinner, Modal, toast } from '../components/ui';
-import { getAvgRating, timeAgo } from '../utils/helpers';
+import { getAvgRating, timeAgo, getAvatarUrl } from '../utils/helpers';
 
 const POPULAR = ['JavaScript','Python','React','Node.js','Figma','UI/UX','Data Analysis','Machine Learning','Photography','Writing','Spanish','French','Guitar','Video Editing','SQL','Docker'];
 
@@ -17,10 +17,34 @@ export default function ProfilePage() {
     name: user?.name || '',
     bio: user?.bio || '',
     location: user?.location || '',
+    avatar: user?.avatar || '',
     skillsOffered: user?.skillsOffered || [],
     skillsWanted: user?.skillsWanted || [],
     customOffer: '', customWant: '',
   });
+
+  // Resize a chosen image to a small square JPEG data URL (no upload server
+  // needed; it's stored on the user and stays within the API body limit).
+  const handlePhoto = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return toast.error('Please choose an image file');
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const min = Math.min(img.width, img.height);   // center-crop to a square
+        ctx.drawImage(img, (img.width - min) / 2, (img.height - min) / 2, min, min, 0, 0, size, size);
+        setForm((p) => ({ ...p, avatar: canvas.toDataURL('image/jpeg', 0.85) }));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     if (user) {
@@ -37,6 +61,7 @@ export default function ProfilePage() {
         name: form.name,
         bio: form.bio,
         location: form.location,
+        avatar: form.avatar,
         skillsOffered: form.skillsOffered,
         skillsWanted: form.skillsWanted,
       });
@@ -100,6 +125,7 @@ export default function ProfilePage() {
           </div>
           <button className="btn-secondary text-sm shrink-0" onClick={() => {
             setForm({ name: user?.name||'', bio: user?.bio||'', location: user?.location||'',
+              avatar: user?.avatar||'',
               skillsOffered: user?.skillsOffered||[], skillsWanted: user?.skillsWanted||[],
               customOffer:'', customWant:'' });
             setEditModal(true);
@@ -175,6 +201,27 @@ export default function ProfilePage() {
       {/* Edit Modal */}
       <Modal open={editModal} onClose={() => setEditModal(false)} title="Edit Profile" maxWidth="max-w-xl">
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+          {/* Profile photo */}
+          <div className="flex items-center gap-4">
+            <img
+              src={form.avatar || getAvatarUrl(null, form.name)}
+              alt="avatar preview"
+              className="w-16 h-16 rounded-full object-cover bg-surface-3"
+            />
+            <div className="flex flex-col gap-1.5">
+              <label className="btn-secondary text-sm cursor-pointer">
+                Upload photo
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+              </label>
+              {form.avatar && (
+                <button type="button" className="text-xs text-ink-5 hover:text-danger text-left"
+                  onClick={() => setForm((p) => ({ ...p, avatar: '' }))}>
+                  Remove photo
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label mb-1.5 block">Name</label>

@@ -3,24 +3,36 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from '../components/ui';
 
+const DEMO = { email: 'demo@gmail.com', password: 'demo@1234' };
+
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.email || !form.password) return toast.error('Fill in all fields');
+  const doLogin = async (email, password) => {
     try {
       setLoading(true);
-      await login(form.email, form.password);
+      await login(email, password);
       navigate('/discover');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.email || !form.password) return toast.error('Fill in all fields');
+    doLogin(form.email, form.password);
+  };
+
+  // Instantly fill the demo credentials and sign in.
+  const useDemo = () => {
+    setForm(DEMO);
+    doLogin(DEMO.email, DEMO.password);
   };
 
   return (
@@ -65,9 +77,24 @@ export default function LoginPage() {
           <Link to="/register" className="text-accent-light hover:underline">Sign up</Link>
         </p>
 
-        {/* Demo hint */}
-        <div className="mt-6 p-3 bg-surface-2 border border-surface-3 rounded-xl text-xs text-ink-4 text-center">
-          Demo: register a new account to explore SkillSwap
+        {/* Demo account — one click to explore */}
+        <div className="mt-6">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 divider" />
+            <span className="text-xs text-ink-5">or</span>
+            <div className="flex-1 divider" />
+          </div>
+          <button
+            type="button"
+            onClick={useDemo}
+            disabled={loading}
+            className="btn-secondary w-full justify-center py-2.5"
+          >
+            ✦ Try the demo account
+          </button>
+          <p className="text-center text-xs text-ink-5 mt-2">
+            Loads <span className="font-mono text-ink-4">{DEMO.email}</span> and signs in instantly
+          </p>
         </div>
       </div>
     </div>

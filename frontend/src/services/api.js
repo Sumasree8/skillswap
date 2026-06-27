@@ -65,6 +65,13 @@ export const usersApi = {
   search:      (params) => api.get('/users/search', { params }),
 };
 
+export const swipesApi = {
+  getFeed:    ()                  => api.get('/swipes/feed'),
+  swipe:      (targetId, action)  => api.post('/swipes', { targetId, action }),
+  getMatches: ()                  => api.get('/swipes/matches'),
+  reset:      ()                  => api.post('/swipes/reset'),
+};
+
 export const swapsApi = {
   request:  (data) => api.post('/swaps/request', data),
   accept:   (id)   => api.put(`/swaps/${id}/accept`),

@@ -7,6 +7,7 @@ import { Spinner } from './components/ui';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DiscoverPage from './pages/DiscoverPage';
+import MatchesPage from './pages/MatchesPage';
 import SwapsPage from './pages/SwapsPage';
 import SwapDetailPage from './pages/SwapDetailPage';
 import SessionsPage from './pages/SessionsPage';
@@ -75,6 +76,7 @@ export default function App() {
             }
           >
             <Route path="/discover" element={<DiscoverPage />} />
+            <Route path="/matches" element={<MatchesPage />} />
             <Route path="/swaps" element={<SwapsPage />} />
             <Route path="/swaps/:id" element={<SwapDetailPage />} />
             <Route path="/sessions" element={<SessionsPage />} />

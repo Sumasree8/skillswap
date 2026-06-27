@@ -80,6 +80,35 @@ npm run dev
 
 ---
 
+### Step 4 — Seed demo data (optional but recommended)
+
+A fresh database has no users, so the app looks empty. Seed a realistic
+community (~25 users, swaps, sessions, circles, reviews, credit histories, and
+chat) so it's demoable to stakeholders:
+
+```bash
+cd backend
+npm run seed
+```
+
+Every seeded account shares one password (`demo@1234`, override with
+`SEED_PASSWORD`). Log in with the main demo account `demo@gmail.com` / `demo@1234`
+(or any seeded account, e.g. `ava@skillswap.app`, with the same password).
+
+> 🐳 **Prefer Docker?** `cp .env.example .env`, set `JWT_SECRET`, then
+> `docker compose up --build` runs Mongo + backend + frontend together.
+> See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the full guide.
+
+---
+
+### Run the tests
+
+```bash
+cd backend && npm test     # Jest + Supertest against an in-memory MongoDB
+```
+
+---
+
 ## ✨ Features
 
 | Module | What it does |
@@ -203,9 +232,15 @@ chat:typing             swap:accepted / rejected / completed
 
 - JWT auth (HS256, configurable expiry)
 - Bcrypt password hashing (12 rounds)
+- **helmet** secure HTTP headers
+- **Rate limiting** — global limiter + a stricter limiter on `/api/auth` (brute-force protection)
+- **express-mongo-sanitize** — blocks NoSQL operator injection
+- CORS locked to an allowlist (`CLIENT_URL`, comma-separated for multiple origins)
+- Refuses to boot in production with a weak/placeholder `JWT_SECRET`
 - Centralised `config/env.js` — server exits immediately if `JWT_SECRET` or `MONGO_URI` missing
-- Auth middleware uses `utils/token.js` — never reads `process.env` directly in controllers
-- CORS locked to `CLIENT_URL`
+- Graceful shutdown on SIGTERM/SIGINT
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for Docker, CI, and managed-host deployment.
 
 ---
 

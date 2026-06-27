@@ -1,79 +1,112 @@
-import { useState, useEffect } from 'react';
-import { usersApi } from '../services/api';
-import { UserCard } from '../components/swap/UserCard';
-import { Spinner, EmptyState } from '../components/ui';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { swipesApi } from '../services/api';
+import { getSocket } from '../services/socket';
+import { SwipeDeck } from '../components/swipe/SwipeDeck';
+import { Spinner, EmptyState, Avatar } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 
 export default function DiscoverPage() {
   const { user } = useAuth();
-  const [matches, setMatches] = useState([]);
+  const navigate = useNavigate();
+  const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [filtered, setFiltered] = useState([]);
+  const [done, setDone] = useState(false);
+  const [match, setMatch] = useState(null);   // { user, chatRoom }
 
-  useEffect(() => {
-    usersApi.getMatches()
-      .then(({ data }) => setMatches(data.matches))
+  const loadFeed = useCallback(() => {
+    setLoading(true);
+    setDone(false);
+    swipesApi.getFeed()
+      .then(({ data }) => setFeed(data.feed))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => { loadFeed(); }, [loadFeed]);
+
+  // Clear swipe history (keeping matches) so the deck fills up again.
+  const startOver = useCallback(async () => {
+    setLoading(true);
+    try { await swipesApi.reset(); } catch { /* fall through to reload */ }
+    loadFeed();
+  }, [loadFeed]);
+
+  // Someone you'd already liked swipes you back → live match popup.
   useEffect(() => {
-    if (!search.trim()) { setFiltered(matches); return; }
-    const q = search.toLowerCase();
-    setFiltered(matches.filter(({ user: u }) =>
-      u.name.toLowerCase().includes(q) ||
-      u.skillsOffered?.some(s => s.name.toLowerCase().includes(q)) ||
-      u.skillsWanted?.some(s => s.name.toLowerCase().includes(q))
-    ));
-  }, [search, matches]);
+    const socket = getSocket();
+    if (!socket) return;
+    const onMatch = ({ user: u, chatRoom }) => setMatch({ user: u, chatRoom });
+    socket.on('swipe:match', onMatch);
+    return () => socket.off('swipe:match', onMatch);
+  }, []);
 
   const hasSkills = user?.skillsOffered?.length > 0 || user?.skillsWanted?.length > 0;
 
   return (
     <div className="page-container">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-ink-1">Discover</h1>
-          <p className="text-sm text-ink-4 mt-0.5">
-            {loading ? 'Finding matches…' : `${filtered.length} people to swap with`}
-          </p>
-        </div>
-        <input
-          type="text"
-          className="input w-full sm:w-64 text-sm"
-          placeholder="Search by name or skill…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+      <div className="text-center mb-6">
+        <h1 className="text-xl font-semibold text-ink-1">Discover</h1>
+        <p className="text-sm text-ink-4 mt-0.5">
+          Swipe right to connect, left to pass
+        </p>
       </div>
 
-      {/* No skills warning */}
       {!hasSkills && !loading && (
-        <div className="bg-warning/5 border border-warning/20 rounded-xl p-4 mb-6 text-sm text-ink-3 flex items-center gap-3">
-          <span className="text-warning text-lg">◈</span>
-          <span>
-            Add skills to your profile to see better matches.{' '}
-            <a href="/profile" className="text-accent-light hover:underline">Update profile →</a>
-          </span>
+        <div className="max-w-sm mx-auto bg-warning/5 border border-warning/20 rounded-xl p-4 mb-6 text-sm text-ink-3 text-center">
+          Add skills to your profile for better matches.{' '}
+          <a href="/profile" className="text-accent-light hover:underline">Update profile →</a>
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center py-20"><Spinner size="lg" /></div>
-      ) : filtered.length === 0 ? (
+      ) : feed.length === 0 || done ? (
         <EmptyState
-          icon="⊹"
-          title="No matches found"
-          description="Try adding more skills to your profile or broaden your search"
-          action={<a href="/profile" className="btn-primary">Update Skills</a>}
+          icon="✦"
+          title="You're all caught up"
+          description="You've seen everyone for now. Check your matches or come back later."
+          action={
+            <div className="flex gap-2">
+              <button className="btn-secondary" onClick={startOver}>Start over</button>
+              <button className="btn-primary" onClick={() => navigate('/matches')}>View Matches</button>
+            </div>
+          }
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(({ user: u, matchScore, matchedSkills }) => (
-            <UserCard key={u._id} user={u} matchScore={matchScore} matchedSkills={matchedSkills} />
-          ))}
+        <SwipeDeck
+          feed={feed}
+          onMatch={(u, chatRoom) => setMatch({ user: u, chatRoom })}
+          onEmpty={() => setDone(true)}
+        />
+      )}
+
+      {/* It's a match! */}
+      {match && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setMatch(null)} />
+          <div className="relative card p-8 max-w-sm w-full text-center animate-slide-up">
+            <p className="text-2xl font-extrabold text-accent-light mb-1">It's a match!</p>
+            <p className="text-sm text-ink-4 mb-6">
+              You and {match.user.name} both want to swap.
+            </p>
+            <div className="flex items-center justify-center gap-4 mb-7">
+              <Avatar user={user} size="xl" className="!w-20 !h-20 ring-2 ring-accent" />
+              <span className="text-3xl text-accent">♥</span>
+              <Avatar user={match.user} size="xl" className="!w-20 !h-20 ring-2 ring-accent" />
+            </div>
+            <div className="flex gap-2">
+              <button className="btn-secondary flex-1" onClick={() => setMatch(null)}>
+                Keep swiping
+              </button>
+              <button
+                className="btn-primary flex-1"
+                onClick={() => navigate('/matches')}
+              >
+                💬 Send a message
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

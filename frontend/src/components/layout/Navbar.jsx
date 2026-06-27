@@ -1,12 +1,14 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import { Compass, Heart, ArrowLeftRight, Zap, Users, LogOut, User as UserIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar, CreditBadge } from '../ui';
 
 const NAV = [
-  { to: '/discover', icon: '⊹', label: 'Discover' },
-  { to: '/swaps',    icon: '⇄', label: 'Swaps' },
-  { to: '/sessions', icon: '⚡', label: 'Sessions' },
-  { to: '/circles',  icon: '◎', label: 'Circles' },
+  { to: '/discover', icon: Compass,        label: 'Discover' },
+  { to: '/matches',  icon: Heart,          label: 'Matches' },
+  { to: '/swaps',    icon: ArrowLeftRight,  label: 'Swaps' },
+  { to: '/sessions', icon: Zap,            label: 'Sessions' },
+  { to: '/circles',  icon: Users,          label: 'Circles' },
 ];
 
 export const Navbar = () => {
@@ -29,7 +31,7 @@ export const Navbar = () => {
 
         {/* Nav links */}
         <div className="flex items-center gap-1">
-          {NAV.map(({ to, icon, label }) => (
+          {NAV.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
@@ -41,7 +43,7 @@ export const Navbar = () => {
                 }`
               }
             >
-              <span className="hidden sm:block">{icon}</span>
+              <Icon size={16} strokeWidth={2} className="hidden sm:block" />
               <span>{label}</span>
             </NavLink>
           ))}
@@ -57,17 +59,17 @@ export const Navbar = () => {
             {/* Dropdown */}
             <div className="absolute right-0 mt-1 w-44 card p-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 shadow-card-hover">
               <NavLink to="/profile" className="flex items-center gap-2 px-3 py-2 text-sm text-ink-2 hover:bg-surface-2 rounded-lg">
-                Profile
+                <UserIcon size={15} /> Profile
               </NavLink>
               <NavLink to="/credits" className="flex items-center gap-2 px-3 py-2 text-sm text-ink-2 hover:bg-surface-2 rounded-lg">
-                Credits
+                <span className="w-[15px] text-center">◈</span> Credits
               </NavLink>
               <div className="divider my-1" />
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10 rounded-lg"
               >
-                Sign out
+                <LogOut size={15} /> Sign out
               </button>
             </div>
           </div>

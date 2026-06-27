@@ -13,6 +13,7 @@ const learningCircleSchema = new mongoose.Schema({
   completedAt: { type: Date, default: null },
   chatRoom: { type: String },
   tags: [{ type: String }],
+  isDemo: { type: Boolean, default: false },   // seeded demo content; hidden from real users
 }, { timestamps: true });
 
 learningCircleSchema.pre('save', function (next) {

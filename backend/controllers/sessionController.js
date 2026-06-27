@@ -17,6 +17,7 @@ const createSession = async (req, res) => {
       scheduledAt: scheduledAt || null,
       description,
       creditCost,
+      isDemo: req.user.isDemo,   // keep demo-created content in the demo pool
     });
 
     await session.populate('mentor', 'name avatar rating ratingCount skillsOffered');
@@ -96,7 +97,7 @@ const completeSession = async (req, res) => {
 const getOpenSessions = async (req, res) => {
   try {
     const { skill } = req.query;
-    const query = { status: 'open', mentor: { $ne: req.user._id } };
+    const query = { status: 'open', mentor: { $ne: req.user._id }, isDemo: req.user.isDemo };
     if (skill) query.skill = { $regex: skill, $options: 'i' };
     const sessions = await Session.find(query)
       .populate('mentor', 'name avatar rating ratingCount')

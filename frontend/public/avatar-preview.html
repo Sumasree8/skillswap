@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SkillSwap — Avatar style preview</title>
+  <style>
+    body { background:#0A0A0B; color:#FAFAFA; font-family: system-ui, sans-serif; margin:0; padding:32px; }
+    h1 { font-size:20px; margin:0 0 4px; }
+    p  { color:#A1A1AA; margin:0 0 28px; font-size:14px; }
+    .style { border:1px solid #212127; border-radius:16px; padding:16px 18px; margin-bottom:16px; background:#111113; }
+    .style h2 { font-size:15px; margin:0 0 12px; display:flex; align-items:center; gap:10px; }
+    .style code { background:#18181B; color:#818CF8; padding:2px 8px; border-radius:8px; font-size:12px; }
+    .row { display:flex; gap:18px; flex-wrap:wrap; }
+    .pic { text-align:center; }
+    .pic img { width:72px; height:72px; border-radius:9999px; background:#212127; display:block; }
+    .pic span { display:block; font-size:11px; color:#71717A; margin-top:6px; }
+    .pill { font-size:11px; color:#A1A1AA; background:#18181B; border:1px solid #2A2A32; border-radius:9999px; padding:2px 10px; }
+  </style>
+</head>
+<body>
+  <h1>Profile-picture style preview</h1>
+  <p>Same people rendered in each DiceBear style. Tell me which style name you want and I'll set it everywhere.</p>
+  <div id="grid"></div>
+  <script>
+    const styles = [
+      ['micah', 'current'],
+      ['notionists', 'clean line-art'],
+      ['personas', 'flat people'],
+      ['lorelei', 'soft illustrated'],
+      ['adventurer', 'detailed faces'],
+      ['open-peeps', 'hand-drawn'],
+      ['avataaars-neutral', 'classic, cleaner'],
+      ['big-ears', 'playful'],
+      ['thumbs', 'abstract (no face)'],
+      ['glass', 'gradient orbs'],
+      ['shapes', 'geometric'],
+      ['initials', 'monogram'],
+    ];
+    const seeds = ['Ava Thompson', 'Marcus Chen', 'Sofia Garcia', 'Priya Sharma', 'Noah Schmidt'];
+    const grid = document.getElementById('grid');
+    for (const [style, note] of styles) {
+      const el = document.createElement('div');
+      el.className = 'style';
+      el.innerHTML = '<h2><code>' + style + '</code> <span class="pill">' + note + '</span></h2>';
+      const row = document.createElement('div');
+      row.className = 'row';
+      for (const seed of seeds) {
+        const pic = document.createElement('div');
+        pic.className = 'pic';
+        pic.innerHTML = '<img src="https://api.dicebear.com/9.x/' + style +
+          '/svg?seed=' + encodeURIComponent(seed) + '" alt="' + style + '"/>' +
+          '<span>' + seed.split(' ')[0] + '</span>';
+        row.appendChild(pic);
+      }
+      el.appendChild(row);
+      grid.appendChild(el);
+    }
+  </script>
+</body>
+</html>

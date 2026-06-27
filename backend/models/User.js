@@ -25,6 +25,9 @@ const userSchema = new mongoose.Schema({
   swapsCompleted: { type: Number, default: 0 },
   sessionsCompleted: { type: Number, default: 0 },
   isVerified: { type: Boolean, default: false },
+  // Seeded demo accounts. Demo and real users live in separate pools: a real
+  // signup never sees demo profiles, and demo accounts only see the demo world.
+  isDemo: { type: Boolean, default: false },
   isOnline: { type: Boolean, default: false },
   lastSeen: { type: Date, default: Date.now },
   joinedAt: { type: Date, default: Date.now },

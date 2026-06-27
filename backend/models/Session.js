@@ -17,6 +17,7 @@ const sessionSchema = new mongoose.Schema({
   completedAt: { type: Date, default: null },
   chatRoom: { type: String },
   description: { type: String, default: '' },
+  isDemo: { type: Boolean, default: false },   // seeded demo content; hidden from real users
 }, { timestamps: true });
 
 sessionSchema.pre('save', function (next) {

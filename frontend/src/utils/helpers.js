@@ -7,12 +7,14 @@ export const formatDate = (date, fmt = 'MMM d, yyyy') => format(new Date(date), 
 export const getInitials = (name = '') =>
   name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
+// Uploaded photo wins; otherwise a unique DiceBear avatar (open-license,
+// illustrated — safe to show publicly, no real-person likeness).
 export const getAvatarUrl = (avatar, name) => {
   if (avatar) return avatar;
-  const initials = getInitials(name);
-  const colors = ['6366F1','8B5CF6','EC4899','F59E0B','10B981','3B82F6'];
-  const color = colors[name?.charCodeAt(0) % colors.length] || '6366F1';
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=${color}&color=fff&bold=true&size=128`;
+  const seed = encodeURIComponent(name || 'user');
+  // Soft varied backgrounds so the line-art reads as a polished, filled avatar.
+  return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}` +
+    `&backgroundColor=c0aede,b6e3f4,d1d4f9,ffd5dc,ffdfbf,c1e7d8&radius=50`;
 };
 
 export const formatCredits = (n) => {

@@ -15,6 +15,7 @@ const createCircle = async (req, res) => {
       title, description, skill, maxMembers, creditCostPerMember,
       scheduledAt, tags,
       members: [],
+      isDemo: req.user.isDemo,   // keep demo-created content in the demo pool
     });
     await circle.populate('host', 'name avatar rating ratingCount');
     res.status(201).json({ success: true, circle });
@@ -86,7 +87,7 @@ const completeCircle = async (req, res) => {
 const getCircles = async (req, res) => {
   try {
     const { skill, status = 'open' } = req.query;
-    const query = { status };
+    const query = { status, isDemo: req.user.isDemo };
     if (skill) query.skill = { $regex: skill, $options: 'i' };
     const circles = await LearningCircle.find(query)
       .populate('host', 'name avatar rating ratingCount')

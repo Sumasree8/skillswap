@@ -6,7 +6,9 @@ const { findMatches } = require('../services/matchingService');
  */
 const getMatches = async (req, res) => {
   try {
-    const matches = await findMatches(req.user._id, 30);
+    // Keep demo and real users in separate pools.
+    const matches = (await findMatches(req.user._id, 30))
+      .filter((m) => m.user.isDemo === req.user.isDemo);
     res.json({ success: true, matches });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -83,7 +85,7 @@ const verifySkill = async (req, res) => {
 const searchUsers = async (req, res) => {
   try {
     const { q, skill } = req.query;
-    const query = { _id: { $ne: req.user._id } };
+    const query = { _id: { $ne: req.user._id }, isDemo: req.user.isDemo };
     if (q) query.$or = [{ name: { $regex: q, $options: 'i' } }, { bio: { $regex: q, $options: 'i' } }];
     if (skill) query['skillsOffered.name'] = { $regex: skill, $options: 'i' };
     const users = await User.find(query).limit(20);

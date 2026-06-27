@@ -1,3 +1,4 @@
+import { Star, BadgeCheck } from 'lucide-react';
 import { getAvatarUrl, getInitials } from '../../utils/helpers';
 
 // ---- Avatar ----
@@ -39,7 +40,7 @@ export const StatusBadge = ({ status }) => {
 export const SkillTag = ({ name, verified = false, level, small = false }) => (
   <span className={`skill-tag ${small ? 'text-xs px-1.5 py-0.5' : ''}`}>
     {name}
-    {verified && <span className="ml-0.5 text-accent-light" title="Verified">✓</span>}
+    {verified && <BadgeCheck size={small ? 12 : 14} className="ml-0.5 text-accent-light" aria-label="Verified" />}
     {level && <span className="ml-1 opacity-60 text-[10px]">{level}</span>}
   </span>
 );
@@ -77,7 +78,7 @@ export const StarRating = ({ value, onChange, readonly = false, size = 'md' }) =
             star <= value ? 'text-credit' : 'text-surface-4'
           }`}
         >
-          ★
+          <Star size="1em" fill={star <= value ? 'currentColor' : 'none'} strokeWidth={1.75} />
         </button>
       ))}
     </div>
@@ -98,7 +99,7 @@ export const MatchScoreBadge = ({ score }) => {
 // ---- CreditBadge ----
 export const CreditBadge = ({ balance, size = 'sm' }) => (
   <div className={`flex items-center gap-1.5 bg-credit/10 text-credit border border-credit/20 rounded-xl px-2.5 py-1 ${size === 'lg' ? 'text-base font-bold' : 'text-sm font-medium'}`}>
-    <span>◈</span>
+    <span className={size === 'lg' ? 'text-base' : 'text-sm'}>◈</span>
     <span>{balance?.toLocaleString() ?? '—'}</span>
   </div>
 );
